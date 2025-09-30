@@ -1,15 +1,13 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-// Build suffix array in O(n log n)
 vector<int> build_suffix_array(const string &s) {
     int n = s.size();
     vector<int> sa(n), rnk(n), tmp(n);
     for (int i = 0; i < n; i++) {
         sa[i] = i;
         rnk[i] = s[i];
-    }
-
+    } 
     for (int k = 1;; k <<= 1) {
         auto cmp = [&](int i, int j) {
             if (rnk[i] != rnk[j]) return rnk[i] < rnk[j];
@@ -18,7 +16,6 @@ vector<int> build_suffix_array(const string &s) {
             return ri < rj;
         };
         sort(sa.begin(), sa.end(), cmp);
-
         tmp[sa[0]] = 0;
         for (int i = 1; i < n; i++)
             tmp[sa[i]] = tmp[sa[i - 1]] + cmp(sa[i - 1], sa[i]);
@@ -26,7 +23,7 @@ vector<int> build_suffix_array(const string &s) {
         if (rnk[sa[n - 1]] == n - 1) break;
     }
     return sa;
-}
+} 
 
 // Kasai algorithm: build LCP in O(n)
 vector<int> build_lcp(const string &s, const vector<int> &sa) {
@@ -47,7 +44,7 @@ vector<int> build_lcp(const string &s, const vector<int> &sa) {
 }
 
 // Binary search using suffix array
-bool contains(const string &s, const string &pat, const vector<int> &sa) {
+bool contains(string s, string pat, vector<int> sa) {
     int n = s.size(), m = pat.size();
     int l = 0, r = n;
     while (l < r) {
@@ -59,17 +56,17 @@ bool contains(const string &s, const string &pat, const vector<int> &sa) {
     return (l < n && s.compare(sa[l], m, pat) == 0);
 }
 
-int longest_repeated_substring(const vector<int> &lcp) {
+int longest_repeated_substring(vector<int> lcp) {
     return *max_element(lcp.begin(), lcp.end());
 }
 
-long long count_distinct_substrings(int n, const vector<int> &lcp) {
+long long count_distinct_substrings(int n, vector<int> lcp) {
     long long total = 1LL * n * (n + 1) / 2;
     long long overlap = accumulate(lcp.begin(), lcp.end(), 0LL);
     return total - overlap;
 }
 
-int longest_common_substring(const string &a, const string &b) {
+int longest_common_substring(string a, string b) {
     string s = a + "#" + b + "$";
     auto sa = build_suffix_array(s);
     auto lcp = build_lcp(s, sa);
