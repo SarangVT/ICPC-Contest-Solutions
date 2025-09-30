@@ -1,0 +1,103 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+// Build suffix array in O(n log n)
+vector<int> build_suffix_array(const string &s) {
+    int n = s.size();
+    vector<int> sa(n), rnk(n), tmp(n);
+    for (int i = 0; i < n; i++) {
+        sa[i] = i;
+        rnk[i] = s[i];
+    }
+
+    for (int k = 1;; k <<= 1) {
+        auto cmp = [&](int i, int j) {
+            if (rnk[i] != rnk[j]) return rnk[i] < rnk[j];
+            int ri = i + k < n ? rnk[i + k] : -1;
+            int rj = j + k < n ? rnk[j + k] : -1;
+            return ri < rj;
+        };
+        sort(sa.begin(), sa.end(), cmp);
+
+        tmp[sa[0]] = 0;
+        for (int i = 1; i < n; i++)
+            tmp[sa[i]] = tmp[sa[i - 1]] + cmp(sa[i - 1], sa[i]);
+        rnk = tmp;
+        if (rnk[sa[n - 1]] == n - 1) break;
+    }
+    return sa;
+}
+
+// Kasai algorithm: build LCP in O(n)
+vector<int> build_lcp(const string &s, const vector<int> &sa) {
+    int n = s.size();
+    vector<int> rank(n), lcp(n - 1);
+    for (int i = 0; i < n; i++) rank[sa[i]] = i;
+
+    int h = 0;
+    for (int i = 0; i < n; i++) {
+        if (rank[i] > 0) {
+            int j = sa[rank[i] - 1];
+            while (i + h < n && j + h < n && s[i + h] == s[j + h]) h++;
+            lcp[rank[i] - 1] = h;
+            if (h > 0) h--;
+        }
+    }
+    return lcp;
+}
+
+// Binary search using suffix array
+bool contains(const string &s, const string &pat, const vector<int> &sa) {
+    int n = s.size(), m = pat.size();
+    int l = 0, r = n;
+    while (l < r) {
+        int mid = (l + r) / 2;
+        string sub = s.substr(sa[mid], min(n - sa[mid], m));
+        if (sub < pat) l = mid + 1;
+        else r = mid;
+    }
+    return (l < n && s.compare(sa[l], m, pat) == 0);
+}
+
+int longest_repeated_substring(const vector<int> &lcp) {
+    return *max_element(lcp.begin(), lcp.end());
+}
+
+long long count_distinct_substrings(int n, const vector<int> &lcp) {
+    long long total = 1LL * n * (n + 1) / 2;
+    long long overlap = accumulate(lcp.begin(), lcp.end(), 0LL);
+    return total - overlap;
+}
+
+int longest_common_substring(const string &a, const string &b) {
+    string s = a + "#" + b + "$";
+    auto sa = build_suffix_array(s);
+    auto lcp = build_lcp(s, sa);
+    int n = s.size();
+    int split = a.size(); // index of '#'
+    int best = 0;
+    for (int i = 0; i < (int)lcp.size(); i++) {
+        bool inA = sa[i] < split;
+        bool inB = sa[i+1] < split;
+        if (inA != inB) {
+            best = max(best, lcp[i]);
+        }
+    }
+    return best;
+}
+
+int main() {
+    string s = "banana";
+    auto sa = build_suffix_array(s);
+    auto lcp = build_lcp(s, sa);
+
+    cout << "Suffix Array:\n";
+    for (int i : sa) cout << i << " ";
+    cout << "\n";
+
+    cout << "LCP Array:\n";
+    for (int x : lcp) cout << x << " ";
+    cout << "\n";
+
+    cout << "Contains 'ana'? " << (contains(s, "ana", sa) ? "YES" : "NO") << "\n";
+}
