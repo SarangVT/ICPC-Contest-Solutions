@@ -1,0 +1,26 @@
+struct Fenwick {
+    int n;
+    vector<long long> bit;
+
+    Fenwick(int n) : n(n), bit(n+1, 0) {}
+
+    // internal point update
+    void add(int idx, long long val) {
+        for (; idx <= n; idx += idx & -idx)
+            bit[idx] += val;
+    }
+
+    // range update: add val to [l, r]
+    void range_add(int l, int r, long long val) {
+        add(l, val);
+        if (r + 1 <= n) add(r + 1, -val);
+    }
+
+    // point query: value at index idx after all range updates
+    long long point_query(int idx) {
+        long long res = 0;
+        for (; idx > 0; idx -= idx & -idx)
+            res += bit[idx];
+        return res;
+    }
+};

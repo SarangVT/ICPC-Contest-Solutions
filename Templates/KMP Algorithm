@@ -1,0 +1,27 @@
+vector<long long> kmp_prefix(const vector<long long>& p){
+    int n = p.size();
+    vector<long long> pi(n);
+    for(int i=1;i<n;i++){
+        int j = pi[i-1];
+        while(j>0 && p[i]!=p[j]) j = pi[j-1];
+        if(p[i]==p[j]) ++j;
+        pi[i]=j;
+    }
+    return pi;
+}
+
+vector<int> kmp_find(const vector<long long>& s, const vector<long long>& p){
+    if(p.empty() || s.size() < p.size()) return {};
+    vector<long long> pi = kmp_prefix(p);
+    vector<int> res;
+    int j = 0;
+    for(int i=0;i<(int)s.size();++i){
+        while(j>0 && s[i]!=p[j]) j = pi[j-1];
+        if(s[i]==p[j]) ++j;
+        if(j==(int)p.size()){
+            res.push_back(i - (int)p.size() + 1);
+            j = pi[j-1];
+        }
+    }
+    return res;
+}
