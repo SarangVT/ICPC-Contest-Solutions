@@ -10,60 +10,42 @@ using namespace std;
 #define pii pair<int, int>
 typedef long long ll;
 
+ll nCk(int n, int k) {
+    if(k > n) return 0;
+    if(k == 0 || k == n) return 1;
+    if(k > n-k) k = n-k;
+    ll ans = 1;
+    fl(i,1,k+1) {
+        ans = ans * (n-k+i) / i;
+    }
+    return ans;
+}
+
+ll countWaysLessThanW(vector<ll>& w, ll W, int k) {
+    int n = w.size();
+    ll ans = 0;
+    int bx = k;
+    flb(i, n-1, 0) {
+        if(w[i] > W) continue;
+        if(bx == 1) {
+            ans += (i+1);
+            break;
+        }
+        ans += nCk(i, bx);
+        W -= w[i];
+        bx--;
+    }
+    return ans;
+}
+
 int main() {
     ios::sync_with_stdio(false);
     cin.tie(0);
 
-    int n, k; cin >> n >> k;
-    vector<ll> a(n);
-    fl(i,0,n) cin >> a[i];
-    sort(a.begin(), a.end());
-    ll c, d; cin >> c >> d;
-
-    int half1 = n/2, half2 = n - half1;
-    vector<vector<ll>> lS(k+1), rS(k+1);
-
-    fl(state,0,(1<<half1)) {
-        int taken = 0;
-        ll sum = 0;
-        fl(i,0,half1) if(state & (1<<i)) {
-            taken++;
-            sum += a[i];
-        }
-        if(taken <= k) {
-            lS[taken].push_back(sum);
-        }
-    }
-
-    fl(state,0,(1<<half2)) {
-        int taken = 0;
-        ll sum = 0;
-        fl(i,0,half2) if(state & (1<<i)) {
-            taken++;
-            sum += a[half1+i];
-        }
-        if(taken <= k) {
-            rS[taken].push_back(sum);
-        }
-    }
-
-    fl(i,0,k+1) {
-        sort(lS[i].begin(), lS[i].end());
-        sort(rS[i].begin(), rS[i].end());
-    }
-
-    ll ans = 0;
-    fl(leftSize,0,k+1) {
-        int rightSize = k - leftSize;
-        if(rightSize < 0 || rightSize > k) continue;
-        for(ll sumLeft : lS[leftSize]) {
-            ll lo = c - sumLeft, hi = d - sumLeft;
-            auto &vec = rS[rightSize];
-            auto it1 = lower_bound(vec.begin(), vec.end(), lo);
-            auto it2 = upper_bound(vec.begin(), vec.end(), hi);
-            ans += (it2 - it1);
-        }
-    }
-
-    cout<<ans<<"\n";
+    int n, k; cin>>n>>k;
+    vector<ll> w(n);
+    fl(i,0,n) cin >> w[i];
+    sort(w.begin(), w.end());
+    ll a, b; cin>>a>>b;
+    cout<<countWaysLessThanW(w, b, k)-countWaysLessThanW(w, a-1, k)<<"\n";
 return 0;}

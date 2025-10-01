@@ -1,0 +1,10 @@
+ll nCk(int n, int k) {
+    if(k > n) return 0;
+    if(k == 0 || k == n) return 1;
+    if(k > n-k) k = n-k;
+    ll ans = 1;
+    for(int i=1; i<=k; i++) {
+        ans = ans * (n-k+i) / i;
+    }
+    return ans;
+}
