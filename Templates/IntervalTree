@@ -1,0 +1,82 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+// Generic Interval structure
+struct Interval {
+    long long low, high;
+    int id; // optional: to store an identifier
+    Interval(long long l=0, long long h=0, int idx=-1) : low(l), high(h), id(idx) {}
+};
+
+// Node of the Interval Tree
+struct ITNode {
+    Interval interval;
+    long long max; // maximum high in subtree
+    ITNode *left, *right;
+
+    ITNode(const Interval &i) {
+        interval = i;
+        max = i.high;
+        left = right = nullptr;
+    }
+};
+
+// Insert interval into tree
+ITNode* insert(ITNode* root, Interval i) {
+    if (!root) return new ITNode(i);
+
+    if (i.low < root->interval.low)
+        root->left = insert(root->left, i);
+    else
+        root->right = insert(root->right, i);
+
+    root->max = max(root->max, i.high);
+    return root;
+}
+
+// Check if two intervals overlap
+bool overlap(const Interval &a, const Interval &b) {
+    return a.low <= b.high && b.low <= a.high;
+}
+
+// Query all intervals that overlap with given interval
+void query(ITNode* root, const Interval &i, vector<Interval> &res) {
+    if (!root) return;
+
+    if (overlap(root->interval, i))
+        res.push_back(root->interval);
+
+    if (root->left && root->left->max >= i.low)
+        query(root->left, i, res);
+
+    query(root->right, i, res);
+}
+
+// Utility: Inorder traversal (for debugging)
+void inorder(ITNode* root) {
+    if (!root) return;
+    inorder(root->left);
+    cout << "[" << root->interval.low << "," << root->interval.high << "] max=" << root->max << "\n";
+    inorder(root->right);
+}
+
+// Example usage
+int main() {
+    ITNode* root = nullptr;
+
+    // Insert some intervals
+    vector<Interval> intervals = {{15, 20, 1}, {10, 30, 2}, {17, 19, 3}, {5, 20, 4}, {12, 15, 5}};
+    for (auto &iv : intervals) root = insert(root, iv);
+
+    cout << "All intervals in tree:\n";
+    inorder(root);
+
+    Interval queryInterval(14, 16);
+    vector<Interval> res;
+    query(root, queryInterval, res);
+
+    cout << "\nIntervals overlapping [" << queryInterval.low << "," << queryInterval.high << "]:\n";
+    for (auto &iv : res) {
+        cout << "[" << iv.low << "," << iv.high << "] id=" << iv.id << "\n";
+    }
+}
